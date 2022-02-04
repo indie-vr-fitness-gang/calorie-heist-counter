@@ -1,10 +1,11 @@
-name = "worker"
+name = "indie-gang-api"
 # type = "javascript" is required to use the `[build]` section
 type = "javascript"
-account_id = ""
-workers_dev = true
-route = ""
-zone_id = ""
+account_id = "b7d9d61b565eec742dae0e20aeecad4d"
+workers_dev = false
+route = "indie-gang-api.realfit.co/*"
+zone_id = "148d26843d21fdf7b67fd842f3496bd8"
+compatibility_date = "2022-02-04"
 
 [build]
 command = "npm install && npm run build"
@@ -19,3 +20,7 @@ bindings = [{name = "COUNTER", class_name = "Counter"}]
 [[migrations]]
 tag = "v1" # Should be unique for each entry
 new_classes = ["Counter"]
+
+#[secrets]
+#INCREMENT_SIGN_SECRET
+#COUNTER_RESET_SECRET
