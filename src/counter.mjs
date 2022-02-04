@@ -48,19 +48,14 @@ export class Counter {
     this.history = new Array(10).fill(null);
 
     this.state = state;
-    // `blockConcurrencyWhile()` ensures no requests are delivered until
-    // initialization completes.
-    this.state.blockConcurrencyWhile(async () => {
-        let stored = await this.state.storage.get("value");
-        this.value = stored || 0;
-    })
   }
 
   // Handle HTTP requests from clients.
   async fetch(request) {
 
     let url = new URL(request.url);
-    let newValue = this.value;
+    let counterValue = await this.state.storage.get("value") || 0;
+
     switch (url.pathname) {
     case "/increment":
 
@@ -143,9 +138,8 @@ export class Counter {
         return new Response(body, { status: 403 })
       }
 
-      newValue = this.value + by;
-      this.value = newValue;
-      await this.state.storage.put("value", newValue);
+      counterValue += by;
+      await this.state.storage.put("value", counterValue);
 
       // Simple circular buffer of recent hashes we can check to thwart simple
       // replay attempts...
@@ -172,8 +166,7 @@ export class Counter {
         return new Response("Invalid secret", { status: 403 })
       }
 
-      newValue = 0;
-      this.value = 0;
+      counterValue = 0;
       await this.state.storage.put("value", 0);
 
       break;
@@ -184,18 +177,6 @@ export class Counter {
       return new Response("Not found", {status: 404});
     }
 
-    // Return `newValue`. Note that `this.value` may have been
-    // incremented or decremented by a concurrent request when we
-    // yielded the event loop to `await` the `storage.put` above!
-    // That's why we stored the counter value created by this
-    // request in `currentValue` before we used `await`.
-    //
-    // XXX: double check this comment from the template (I'm not sure
-    // this is true since durable objects introduced input/output
-    // gate rules)
-    // Ticket raised for clarification here:
-    // https://github.com/cloudflare/durable-objects-template/issues/11
-
-    return new Response(newValue);
+    return new Response(counterValue);
   }
 }
