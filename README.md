@@ -30,6 +30,36 @@ The secret for the hash is set via `wrangler secret put COUNTER_RESET_SECRET` an
 It's not an ideal setup, but hopefully ok for our current needs.
 
 
+# In-Game Integration
+
+For anyone working with C# these utilities would likely be handy starting points for creating signed `/increment` urls:
+
+```csharp
+using System.Text;
+using System.Security.Cryptography;
+
+private static string ToHexDigest(byte[] digest)
+{
+    StringBuilder hexDigest = new StringBuilder(digest.Length * 2);
+
+    for (int i = 0; i < digest.Length; i++)
+    {
+        hexDigest.Append(digest[i].ToString("x2"));
+    }
+
+    return hexDigest.ToString();
+}
+
+private string HashPayloadSha256(string payload)
+{
+    using (var sha256 = SHA256Managed.Create())
+    {
+        var hash = sha256.ComputeHash(Encoding.Default.GetBytes(payload));
+        return ToHexDigest(hash);
+    }
+}
+```
+
 # Deploying
 
 Deploying requires a Cloudflare account + domain and payment plan that supports durable objects (configured in `wrangler.toml`)
