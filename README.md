@@ -32,7 +32,7 @@ It's not an ideal setup, but hopefully ok for our current needs.
 
 # In-Game Integration
 
-For anyone working with C# these utilities would likely be handy starting points for creating signed `/increment` urls:
+For anyone working with C# these utilities could be used to create signed `/increment` urls:
 
 ```csharp
 using System.Text;
@@ -50,14 +50,34 @@ private static string ToHexDigest(byte[] digest)
     return hexDigest.ToString();
 }
 
-private string SignIncrement(int by, long expiry)
-{
-    var payload = "/increment:" + by + ":" + expiry;
+private const string INDIE_GANG_API_HOST = "indie-gang-api.realfit.co";
+private static byte[] INDIE_GANG_API_KEY = Encoding.UTF8.GetBytes("secret");
 
-    using (var sha256 = SHA256Managed.Create())
+private static string CreateSignedIncrementUrl(int by)
+{
+    StringBuilder urlBuilder = new StringBuilder("http://", INDIE_GANG_API_HOST.Length + 128);
+    long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    long expiry = now + 60;
+
+    string byStr = by.ToString();
+    string expiryStr = expiry.ToString();
+
+    var payload = String.Join(":", "/increment", byStr, expiryStr);
+
+    using (HMACSHA256 hmac = new HMACSHA256(INDIE_GANG_API_KEY))
     {
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(payload));
-        return ToHexDigest(hash);
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+        var hexDigest = ToHexDigest(hash);
+
+        urlBuilder.Append(INDIE_GANG_API_HOST);
+        urlBuilder.Append("/increment?by=");
+        urlBuilder.Append(byStr);
+        urlBuilder.Append("&expiry=");
+        urlBuilder.Append(expiryStr);
+        urlBuilder.Append("&mac=");
+        urlBuilder.Append(hexDigest);
+
+        return urlBuilder.ToString();
     }
 }
 ```
