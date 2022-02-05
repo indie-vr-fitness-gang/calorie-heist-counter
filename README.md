@@ -50,8 +50,18 @@ private static string ToHexDigest(byte[] digest)
     return hexDigest.ToString();
 }
 
+private static string SignIncrement(byte[] key, int by, long expiry)
+{
+    var payload = $"/increment:{by}:{expiry}";
+    using (HMACSHA256 hmac = new HMACSHA256(INDIE_GANG_API_KEY))
+    {
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+        return ToHexDigest(hash);
+    }
+}
+
 private const string INDIE_GANG_API_HOST = "indie-gang-api.realfit.co";
-private static byte[] INDIE_GANG_API_KEY = Encoding.UTF8.GetBytes("secret");
+private static byte[] INDIE_GANG_API_KEY = Encoding.UTF8.GetBytes("asdf1234");
 
 private static string CreateSignedIncrementUrl(int by)
 {
@@ -59,26 +69,17 @@ private static string CreateSignedIncrementUrl(int by)
     long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     long expiry = now + 60;
 
-    string byStr = by.ToString();
-    string expiryStr = expiry.ToString();
+    var hexDigest = SignIncrement(INDIE_GANG_API_KEY, by, expiry);
 
-    var payload = String.Join(":", "/increment", byStr, expiryStr);
+    urlBuilder.Append(INDIE_GANG_API_HOST);
+    urlBuilder.Append("/increment?by=");
+    urlBuilder.Append(by);
+    urlBuilder.Append("&expiry=");
+    urlBuilder.Append(expiry);
+    urlBuilder.Append("&mac=");
+    urlBuilder.Append(hexDigest);
 
-    using (HMACSHA256 hmac = new HMACSHA256(INDIE_GANG_API_KEY))
-    {
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
-        var hexDigest = ToHexDigest(hash);
-
-        urlBuilder.Append(INDIE_GANG_API_HOST);
-        urlBuilder.Append("/increment?by=");
-        urlBuilder.Append(byStr);
-        urlBuilder.Append("&expiry=");
-        urlBuilder.Append(expiryStr);
-        urlBuilder.Append("&mac=");
-        urlBuilder.Append(hexDigest);
-
-        return urlBuilder.ToString();
-    }
+    return urlBuilder.ToString();
 }
 ```
 
