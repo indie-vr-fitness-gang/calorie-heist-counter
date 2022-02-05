@@ -50,11 +50,13 @@ private static string ToHexDigest(byte[] digest)
     return hexDigest.ToString();
 }
 
-private string HashPayloadSha256(string payload)
+private string SignIncrement(int by, long expiry)
 {
+    var payload = "/increment:" + by + ":" + expiry;
+
     using (var sha256 = SHA256Managed.Create())
     {
-        var hash = sha256.ComputeHash(Encoding.Default.GetBytes(payload));
+        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(payload));
         return ToHexDigest(hash);
     }
 }
