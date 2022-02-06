@@ -1,8 +1,8 @@
 {
   "private": true,
-  "name": "{{ project-name }}",
-  "version": "1.0.0",
-  "description": "A template for kick starting a Cloudflare Workers project",
+  "name": "calorie-heist-api",
+  "version": "0.1.0",
+  "description": "A minimal API for coordinating our indie VR fitness event",
   "module": "./dist/index.mjs",
   "scripts": {
     "build": "rollup -c",
