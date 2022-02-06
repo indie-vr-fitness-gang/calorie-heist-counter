@@ -10,3 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added daily/hourly snapshots and `/daily_snapshots` + `/hourly_snapshots` endpoints
 - Renamed test tool to `test-api.py` and moved expected config to `../config.json` to keep
   it out of the repo and avoid risk of adding to source control
+- Config should now look like:
+
+```
+{
+    "app_secret": "foobar",
+    "server_secret": "foobar",
+    "host": "https://indie-gang-api.realfit.co"
+}
+```

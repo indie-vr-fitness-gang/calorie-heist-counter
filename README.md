@@ -10,11 +10,15 @@ Worker code is in `src/`. The Durable Object `Counter` class is in `src/counter.
 
 There are currently just three REST API endpoints: `/reset`, `/increment` and read the counter via `/`
 
+Some of the priviledge APIs require a "server" secret be passed via a `secret=foobar` query parameter.
+
+The secret is set via `wrangler secret put SERVER_SECRET` and can be shared with whoever needs to use these APIs
+
+## /reset
+
 The reset API is simply invoked like `GET http://host/reset?secret=12345`
 
-The secret is set via `wrangler secret put COUNTER_RESET_SECRET` and can be shared with whoever may need to reset the counter.
-
-
+## /increment
 The increment API is invoked like `GET http://host/increment?by=500&expiry=12345678&mac=0f94813426048e4301cd4fd1f3c7d6b86d6c6777452bcf7bbeb8a4fab8245634`
 
 The `by` parameter indicates how much to increment the calorie count (which currently has a maximum of 2000 just to limit the damage of bugs with us incrementing the counter)
@@ -25,9 +29,63 @@ The `expiry` value should be set to a unix timestamp (in seconds), such as 60 se
 
 The `mac` parameter is a SHA-256 hash of an ascii/utf8 string formatted like this: `"/increment:by:expiry"`, e.g. `"/increment:500:12345678"`
 
-The secret for the hash is set via `wrangler secret put COUNTER_RESET_SECRET` and this secret is shared with each particpating app.
+The secret for the hash is set via `wrangler secret put APP_SECRET` and this secret is shared with each particpating app.
 
 It's not an ideal setup, but hopefully ok for our current needs.
+
+# /server_increment
+
+This endpoint can be used to increment the counter from backends where there's no need to worry about leaking the secret.
+
+Invoked like `GET http://host/increment?by=500&secret=1234`
+
+The `by` parameter is the same as for `/increment`
+
+# /daily_snapshots
+
+Invoked like `GET http://host/daily_snapshots`
+
+This will return a JSON result like:
+```json
+{
+    "ver": 1,
+    "snapshots": [
+        [
+            1643587200,
+            500
+        ],
+    ]
+}
+```
+
+with up to 30 daily snapshots.
+
+Each snapshot is a pair like `[timestamp, counter]` where the timestamp is time since the unix epoch in seconds.
+
+# /hourly_snapshots
+
+Invoked like `GET http://host/hourly_snapshots`
+
+This will return a JSON result like:
+```json
+{
+    "ver": 1,
+    "snapshots": [
+        [
+            1643648400,
+            500
+        ],
+        [
+            1643652000,
+            200
+        ]
+    ]
+}
+```
+
+with up to 24 hourly snapshots.
+
+Each snapshot is a pair like `[timestamp, counter]` where the timestamp is time since the unix epoch in seconds.
 
 
 # In-Game Integration
